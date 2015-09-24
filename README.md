@@ -19,7 +19,7 @@ Extras...
 
 
 
-Herramientas
+Herramientas (los editores son opcionales al igual que mysql workbeanch)
 
 CodeIgniter 3.0.1
 
