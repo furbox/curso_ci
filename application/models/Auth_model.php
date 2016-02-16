@@ -14,9 +14,14 @@ class Auth_model extends CI_Model
         parent::__construct();
     }
 
-    public function getUser($email){
-        $this->db->where('user_email', $email);
-        $query = $this->db->get('users');
-        return $query->row();
+    public function getUser($email = FALSE){
+        if($email){            
+            $query = $this->db->get_where('users', array('users_email' => $email));
+            return $query->row();
+        }else{
+            $query = $this->db->get('users');
+            return $query->result();
+        }
+        
     }
 }

@@ -8,7 +8,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class Auth extends CI_Controller
 {
-
     /**
      * Auth constructor.
      */
@@ -16,6 +15,7 @@ class Auth extends CI_Controller
     {
         parent::__construct();
         $this->load->model('Auth_model');
+        $this->load->library('hash');
     }
 
     public function login(){
@@ -29,28 +29,29 @@ class Auth extends CI_Controller
     }
 
     public function signin(){
-        $this->form_validation->set_rules('correo', 'Email', 'required|valid_email|max_length[150]');
-        $this->form_validation->set_rules('pass', 'Password', 'required|min_length[8]|max_length[16]');
-
-        if ($this->form_validation->run() == FALSE)
+        
+        if ($this->form_validation->run('valida_login') == FALSE)
         {
             $this->login();
         }
         else
         {
-            $correo = $this->input->post('correo');
-            $pass = $this->input->post('pass');
+            $correo = $this->security->xss_clean(addslashes(strip_tags($this->input->post('correo', TRUE))));
+            $pass = $this->security->xss_clean(addslashes(strip_tags($this->input->post('pass', TRUE))));
             $user = $this->Auth_model->getUser($correo);
+            
             if(!$user){
-                $this->session->set_flashdata("mensaje_error","Datos de usuario incorrectos");
+                $this->session->set_flashdata("mensaje_error","Datos de usuario incorrectose");
                 redirect(base_url().'login');
             }
-            if($user->user_pass != sha1(md5($pass))){
-                $this->session->set_flashdata("mensaje_error","Datos de usuario incorrectos");
+            $encrypt = $this->hash->encrypt($pass);
+            if($user->users_pass != $encrypt){
+                $this->session->set_flashdata("mensaje_error","Datos de usuario incorrectosp");
                 redirect(base_url().'login');
             }
-            $_SESSION['userid'] = $user->idu;
-            $_SESSION['user_email'] = $user->user_email;
+            
+            $_SESSION['userid'] = $user->id;
+            $_SESSION['user_email'] = $user->users_email;
             $_SESSION['is_logged_in'] = TRUE;
             $this->session->set_flashdata("mensaje_success","Bienvenido ".$_SESSION['user_email']);
             redirect(base_url());
@@ -60,5 +61,9 @@ class Auth extends CI_Controller
     public function logout(){
         session_destroy();
         redirect();
+    }
+    
+    public function check_password_strength(){
+        
     }
 }
